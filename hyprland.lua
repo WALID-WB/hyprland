@@ -61,6 +61,17 @@ hl.env("HYPRCURSOR_SIZE", "24")
 -- المظهر العام (appearance)
 --------------------------------------------------------------------------------
 
+-- Rounded corners for fullscreen windows: 45° instead of sharp edges.
+-- (rounding = 0 means fully sharp corners in Hyprland, so we use a small value.)
+hl.window_rule({
+    name = "fullscreen-rounded-45",
+    match = {
+        fullscreen = true,
+    },
+    rounding    = 1,
+    rounding_power = 4.0,
+})
+
 hl.config({
     general = {
         gaps_in  = 5,
@@ -171,12 +182,21 @@ hl.curve("quick", {
     },
 })
 
--- Spring curve.
+-- Spring curve — snappier yet smooth (no overshoot), tuned for Intel HD 620.
 hl.curve("easy", {
     type = "spring",
     mass = 1,
-    stiffness = 238.1191,
-    dampening = 24.21279333,
+    stiffness = 350,
+    dampening = 32,
+})
+
+-- Professional ease-out curve with a gentle start and quick settle.
+hl.curve("smoothOut", {
+    type = "bezier",
+    points = {
+        { 0.26, 0.04 },
+        { 0.18, 1 },
+    },
 })
 
 -- Animation leaves.
@@ -199,24 +219,24 @@ hl.animation({
 hl.animation({
     leaf = "windows",
     enabled = true,
-    speed = 4.5,
+    speed = 6,
     spring = "easy",
 })
 
 hl.animation({
     leaf = "windowsIn",
     enabled = true,
-    speed = 4,
+    speed = 5.5,
     spring = "easy",
-    style = "popin 87%",
+    style = "popin 92%",
 })
 
 hl.animation({
     leaf = "windowsOut",
     enabled = true,
-    speed = 2.2,
-    bezier = "easeOutQuint",
-    style = "popin 87%",
+    speed = 4,
+    bezier = "smoothOut",
+    style = "popin 92%",
 })
 
 hl.animation({
@@ -397,6 +417,21 @@ hl.window_rule({
     },
     move  = "20 monitor_h-120",
     float = true,
+})
+
+-- When two (or more) windows are on screen:
+-- the MAIN window (the focused/active one in dwindle split) gets a 25%
+-- transparency reduction (opacity 0.75). Other windows stay fully opaque.
+-- NOTE: opacity is animated via the windowsIn/windowsOut curves below,
+-- so the change fades smoothly instead of snapping.
+hl.window_rule({
+    name = "main-window-opacity-75",
+    match = {
+        activated   = true,
+        floating    = false,
+        fullscreen  = false,
+    },
+    opacity = 0.75,
 })
 
 --------------------------------------------------------------------------------
