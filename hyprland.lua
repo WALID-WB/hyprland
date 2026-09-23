@@ -61,6 +61,19 @@ hl.env("HYPRCURSOR_SIZE", "24")
 -- المظهر العام (appearance)
 --------------------------------------------------------------------------------
 
+-- Rounded corners for fullscreen windows: ~45° chamfer instead of sharp edges.
+-- (rounding = 0 means fully sharp corners in Hyprland, so we use a small value.)
+-- NOTE: the match property must be 'isfullscreen' — 'fullscreen' is invalid
+-- in the Lua API and causes "unknown match property" config errors.
+hl.window_rule({
+    name = "fullscreen-rounded-45",
+    match = {
+        isfullscreen = true,
+    },
+    rounding       = 1,
+    rounding_power = 4.0,
+})
+
 hl.config({
     general = {
         gaps_in  = 5,
@@ -171,12 +184,21 @@ hl.curve("quick", {
     },
 })
 
--- Spring curve.
+-- Spring curve — snappier yet smooth (no overshoot), tuned for Intel HD 620.
 hl.curve("easy", {
     type = "spring",
     mass = 1,
-    stiffness = 238.1191,
-    dampening = 24.21279333,
+    stiffness = 350,
+    dampening = 32,
+})
+
+-- Professional ease-out curve with a gentle start and quick settle.
+hl.curve("smoothOut", {
+    type = "bezier",
+    points = {
+        { 0.26, 0.04 },
+        { 0.18, 1 },
+    },
 })
 
 -- Animation leaves.
@@ -199,24 +221,24 @@ hl.animation({
 hl.animation({
     leaf = "windows",
     enabled = true,
-    speed = 4.5,
+    speed = 6,
     spring = "easy",
 })
 
 hl.animation({
     leaf = "windowsIn",
     enabled = true,
-    speed = 4,
+    speed = 5.5,
     spring = "easy",
-    style = "popin 87%",
+    style = "popin 92%",
 })
 
 hl.animation({
     leaf = "windowsOut",
     enabled = true,
-    speed = 2.2,
-    bezier = "easeOutQuint",
-    style = "popin 87%",
+    speed = 4,
+    bezier = "smoothOut",
+    style = "popin 92%",
 })
 
 hl.animation({
@@ -376,15 +398,18 @@ hl.window_rule({
 })
 
 -- Fix some dragging issues with XWayland.
+-- NOTE: 'floating' and 'fullscreen' are NOT valid match properties in the
+-- Hyprland Lua API (they cause config errors). The correct names are
+-- 'float' and 'isfullscreen'.
 hl.window_rule({
     name = "fix-xwayland-drags",
     match = {
-        class      = "^$",
-        title      = "^$",
-        xwayland   = true,
-        float      = true,
-        fullscreen = false,
-        pin        = false,
+        class         = "^$",
+        title         = "^$",
+        xwayland      = true,
+        float         = true,
+        isfullscreen  = false,
+        pin           = false,
     },
     no_focus = true,
 })
@@ -397,6 +422,24 @@ hl.window_rule({
     },
     move  = "20 monitor_h-120",
     float = true,
+})
+
+-- When two (or more) windows are on screen:
+-- ONLY the SECONDARY window (the non-focused tiled one) gets 25% transparency
+-- (opacity 0.75). The main/focused window keeps FULL opacity.
+-- NOTE: 'activated' is not a valid match property in the Lua API; instead we
+-- use initialFocus = false, which only ever matches windows that are NOT the
+-- focused one (focused windows have already passed their initial focus).
+-- 'fullscreen'/'floating' are also invalid here -> use 'isfullscreen'/'float'.
+hl.window_rule({
+    name = "secondary-window-opacity-75",
+    match = {
+        class        = "^.*$",
+        initialFocus = false,
+        float        = false,
+        isfullscreen = false,
+    },
+    opacity = 0.75,
 })
 
 --------------------------------------------------------------------------------
