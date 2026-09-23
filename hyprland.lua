@@ -403,39 +403,37 @@ hl.window_rule({
 -- قواعد مساحات العمل (workspaces)
 -- فك التعليق فقط إذا أردت فجوات ذكية / بدون فجوات في مساحات عمل معينة.
 --------------------------------------------------------------------------------
+hl.workspace_rule({
+     workspace = "w[tv1]",
+     gaps_out  = 10,
+     gaps_in   = 0,
+})
 
--- hl.workspace_rule({
---     workspace = "w[tv1]",
---     gaps_out  = 0,
---     gaps_in   = 0,
--- })
+hl.workspace_rule({
+     workspace = "f[1]",
+     gaps_out  = 15, 
+     gaps_in   = 15,
+})
 
--- hl.workspace_rule({
---     workspace = "f[1]",
---     gaps_out  = 0,
---     gaps_in   = 0,
--- })
+hl.window_rule({
+     name = "no-gaps-wtv1",
+     match = {
+         float     = false,
+         workspace = "w[tv1]",
+     },
+     border_size = 0,
+     rounding    = 0,
+})
 
--- hl.window_rule({
---     name = "no-gaps-wtv1",
---     match = {
---         float     = false,
---         workspace = "w[tv1]",
---     },
---     border_size = 0,
---     rounding    = 0,
--- })
-
--- hl.window_rule({
---     name = "no-gaps-f1",
---     match = {
---         float     = false,
---         workspace = "f[1]",
---     },
---     border_size = 0,
---     rounding    = 0,
--- })
-
+hl.window_rule({
+     name = "no-gaps-f1",
+     match = {
+         float     = false,
+         workspace = "f[1]",
+     },
+     border_size = 20,
+     rounding    = 20,
+})
 --------------------------------------------------------------------------------
 -- اختصارات لوحة المفاتيح (keybinds)
 --------------------------------------------------------------------------------
@@ -457,8 +455,11 @@ hl.bind(m .. "+SHIFT+Q", hl.dsp.exec_cmd("hyprctl dispatch exit"))
 -- File manager.
 hl.bind(m .. "+E", hl.dsp.exec_cmd(vars.file_manager))
 
+-- اختصار فتح مدير الحافظة (يوضع خارج دالة hl.on)
+hl.bind(m .. "+V", hl.dsp.exec_cmd("~/.local/bin/clipboard-manager"))
+
 -- Toggle floating.
-hl.bind(m .. "+V", hl.dsp.window.float({ action = "toggle" }))
+hl.bind(m .. "+O", hl.dsp.window.float({ action = "toggle" }))
 
 -- App menu / runner.
 hl.bind(m .. "+R", hl.dsp.exec_cmd(vars.menu))
@@ -567,7 +568,12 @@ hl.bind("Menu", hl.dsp.exec_cmd('grim -g "$(slurp)" - | wl-copy'))
 -- تشغيل التطبيقات مع فصلها تماماً عن عملية البدء
 --------------------------------------------------------------------------------
 
+-- التشغيل عند الإقلاع (startup)
 hl.on("hyprland.start", function()
     hl.exec_cmd("waybar")
     hl.exec_cmd("hypridle")
+    -- مراقبة الحافظة (يجب أن تكون داخل الدالة)
+    hl.exec_cmd("wl-paste --type text --watch cliphist -max-items 50 store &")
+    hl.exec_cmd("wl-paste --type image --watch cliphist -max-items 50 store &")
 end)
+
