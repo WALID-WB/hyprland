@@ -61,14 +61,16 @@ hl.env("HYPRCURSOR_SIZE", "24")
 -- المظهر العام (appearance)
 --------------------------------------------------------------------------------
 
--- Rounded corners for fullscreen windows: 45° instead of sharp edges.
+-- Rounded corners for fullscreen windows: ~45° chamfer instead of sharp edges.
 -- (rounding = 0 means fully sharp corners in Hyprland, so we use a small value.)
+-- NOTE: the match property must be 'isfullscreen' — 'fullscreen' is invalid
+-- in the Lua API and causes "unknown match property" config errors.
 hl.window_rule({
     name = "fullscreen-rounded-45",
     match = {
-        fullscreen = true,
+        isfullscreen = true,
     },
-    rounding    = 1,
+    rounding       = 1,
     rounding_power = 4.0,
 })
 
@@ -396,15 +398,18 @@ hl.window_rule({
 })
 
 -- Fix some dragging issues with XWayland.
+-- NOTE: 'floating' and 'fullscreen' are NOT valid match properties in the
+-- Hyprland Lua API (they cause config errors). The correct names are
+-- 'float' and 'isfullscreen'.
 hl.window_rule({
     name = "fix-xwayland-drags",
     match = {
-        class      = "^$",
-        title      = "^$",
-        xwayland   = true,
-        float      = true,
-        fullscreen = false,
-        pin        = false,
+        class         = "^$",
+        title         = "^$",
+        xwayland      = true,
+        float         = true,
+        isfullscreen  = false,
+        pin           = false,
     },
     no_focus = true,
 })
@@ -420,16 +425,19 @@ hl.window_rule({
 })
 
 -- When two (or more) windows are on screen:
--- the MAIN window (the focused/active one in dwindle split) gets a 25%
--- transparency reduction (opacity 0.75). Other windows stay fully opaque.
--- NOTE: opacity is animated via the windowsIn/windowsOut curves below,
--- so the change fades smoothly instead of snapping.
+-- ONLY the SECONDARY window (the non-focused tiled one) gets 25% transparency
+-- (opacity 0.75). The main/focused window keeps FULL opacity.
+-- NOTE: 'activated' is not a valid match property in the Lua API; instead we
+-- use initialFocus = false, which only ever matches windows that are NOT the
+-- focused one (focused windows have already passed their initial focus).
+-- 'fullscreen'/'floating' are also invalid here -> use 'isfullscreen'/'float'.
 hl.window_rule({
-    name = "main-window-opacity-75",
+    name = "secondary-window-opacity-75",
     match = {
-        activated   = true,
-        floating    = false,
-        fullscreen  = false,
+        class        = "^.*$",
+        initialFocus = false,
+        float        = false,
+        isfullscreen = false,
     },
     opacity = 0.75,
 })
